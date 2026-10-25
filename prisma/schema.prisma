@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RemittanceStatus {
+  PENDING_PAYMENT
+  READY_TO_CLAIM
+  PROCESSING_PAYOUT
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+model Remittance {
+  id                  String           @id @default(cuid())
+  claimCode           String           @unique
+  senderName          String
+  senderEmail         String
+  recipientName       String
+  recipientPhone      String?
+  amountSentUsdCents  Int              // Monto cobrado al remitente en centavos USD (ej. 5000 = $50.00)
+  feeUsdCents         Int              // Comisión de plataforma en centavos USD
+  netPayoutUsdCents   Int              // Monto neto que recibe el destinatario en Chivo Wallet (en centavos USD)
+  status              RemittanceStatus @default(PENDING_PAYMENT)
+  paymentMode         String           @default("mock") // "mock" | "production"
+  chivoBolt11Invoice  String?          // Factura Lightning (lnbc...) pegada por el destinatario
+  blinkWalletIdUsed   String?          // ID de la billetera Stablesats USD usada
+  blinkTransactionRef String?          // Estado o referencia devuelta por Blink
+  failureReason       String?
+  claimedAt           DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+}
